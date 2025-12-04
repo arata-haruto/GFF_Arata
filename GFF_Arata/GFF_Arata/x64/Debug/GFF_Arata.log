@@ -1,22 +1,2 @@
-﻿  AppMain.cpp
-  GameMain.cpp
-  Title.cpp
-  Application.cpp
-C:\PG\2025\GFF_Arata\GFF_Arata\Utility\Application.h(5,10): error C1083: include ファイルを開けません。'../Scenes/SceneManager.h':No such file or directory
-  (ソース ファイル 'AppMain.cpp' をコンパイルしています)
-  
-C:\PG\2025\GFF_Arata\GFF_Arata\Utility\Application.h(5,10): error C1083: include ファイルを開けません。'../Scenes/SceneManager.h':No such file or directory
-  (ソース ファイル 'Utility/Application.cpp' をコンパイルしています)
-  
-  Collision.cpp
-C:\PG\2025\GFF_Arata\GFF_Arata\Utility\Collision.cpp(20,8): warning C4101: 'side': ローカル変数は 1 度も使われていません。
-  InputManager.cpp
-C:\PG\2025\GFF_Arata\GFF_Arata\Utility\InputManager.cpp(25,33): warning C4244: '引数': 'short' から 'unsigned char' への変換です。データが失われる可能性があります。
-C:\PG\2025\GFF_Arata\GFF_Arata\Utility\InputManager.cpp(26,33): warning C4244: '引数': 'short' から 'unsigned char' への変換です。データが失われる可能性があります。
-  ProjectConfig.cpp
-  ResourceManager.cpp
-  Vector2D.cpp
-  コードを生成中...
-C:\PG\2025\GFF_Arata\GFF_Arata\Utility\InputManager.cpp(72): warning C4715: 'InputManager::GetButtonState': 値を返さないコントロール パスがあります。
-C:\PG\2025\GFF_Arata\GFF_Arata\Utility\InputManager.cpp(96): warning C4172: ローカル変数またはテンポラリのアドレスを返します
-C:\PG\2025\GFF_Arata\GFF_Arata\Utility\InputManager.cpp(91): warning C4172: ローカル変数またはテンポラリのアドレスを返します
+﻿  Player.cpp
+  GFF_Arata.vcxproj -> C:\PG\2025\GFF_Arata\GFF_Arata\x64\Debug\GFF_Arata.exe

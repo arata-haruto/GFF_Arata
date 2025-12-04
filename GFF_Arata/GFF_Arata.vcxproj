@@ -131,24 +131,44 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Utility\ItemManager.h" />
+    <ClInclude Include="Objects\Item.h" />
+    <ClInclude Include="Objects\Floor.h" />
+    <ClInclude Include="Objects\Player.h" />
     <ClInclude Include="Scene\GameMain.h" />
-    <ClInclude Include="Scene\Title.h" />
+    <ClInclude Include="Scene\InGame\InGameScene.h" />
+    <ClInclude Include="Scene\SceneBase.h" />
+    <ClInclude Include="Scene\SceneFactory.h" />
+    <ClInclude Include="Scene\SceneManager.h" />
+    <ClInclude Include="Scene\Title\TitleScene.h" />
     <ClInclude Include="Utility\Application.h" />
     <ClInclude Include="Utility\Collision.h" />
     <ClInclude Include="Utility\InputManager.h" />
+    <ClInclude Include="Utility\ChoiceEffect.h" />
     <ClInclude Include="Utility\ProjectConfig.h" />
+    <ClInclude Include="Utility\ReasoningManager.h" />
+    <ClInclude Include="Utility\ReasoningUI.h" />
     <ClInclude Include="Utility\ResourceManager.h" />
     <ClInclude Include="Utility\singleton.h" />
     <ClInclude Include="Utility\Vector2D.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AppMain.cpp" />
+    <ClCompile Include="Utility\ItemManager.cpp" />
+    <ClCompile Include="Objects\Item.cpp" />
+    <ClCompile Include="Objects\Floor.cpp" />
+    <ClCompile Include="Objects\Player.cpp" />
     <ClCompile Include="Scene\GameMain.cpp" />
-    <ClCompile Include="Scene\Title.cpp" />
+    <ClCompile Include="Scene\InGame\InGameScene.cpp" />
+    <ClCompile Include="Scene\SceneManager.cpp" />
+    <ClCompile Include="Scene\Title\TitleScene.cpp" />
     <ClCompile Include="Utility\Application.cpp" />
     <ClCompile Include="Utility\Collision.cpp" />
+    <ClCompile Include="Utility\ChoiceEffect.cpp" />
     <ClCompile Include="Utility\InputManager.cpp" />
     <ClCompile Include="Utility\ProjectConfig.cpp" />
+    <ClCompile Include="Utility\ReasoningManager.cpp" />
+    <ClCompile Include="Utility\ReasoningUI.cpp" />
     <ClCompile Include="Utility\ResourceManager.cpp" />
     <ClCompile Include="Utility\Vector2D.cpp" />
   </ItemGroup>
