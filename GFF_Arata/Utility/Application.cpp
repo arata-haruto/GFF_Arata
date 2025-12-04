@@ -1,8 +1,8 @@
 #include "Application.h"
 #include "DxLib.h"
 #include "InputManager.h"
-#include "../Scenes/SceneManager.h"
-#include "../Scenes/SceneBase.h"
+#include "../Scene/SceneManager.h"
+#include "../Scene/SceneBase.h"
 
 Application::Application() :
 	delta_second(0), start_time(0),
@@ -13,7 +13,7 @@ Application::Application() :
 
 Application::~Application()
 {
-	//‰ğ•ú–Y‚ê–h~
+	//äºŒé‡è§£æ”¾é˜²æ­¢
 	Shutdown();
 }
 
@@ -21,22 +21,22 @@ bool Application::WakeUp()
 {
 	scene = SceneManager::GetInstance();
 
-	//ƒEƒBƒ“ƒhƒEƒ‚[ƒh‚Å‹N“®‚·‚é
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ¢ãƒ¼ãƒ‰ã§èµ·å‹•ã™ã‚‹
 	ChangeWindowMode(TRUE);
 
-	//ƒEƒBƒ“ƒhƒEƒTƒCƒY‚Ìİ’è	
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚ºã®è¨­å®š	
 	SetGraphMode(D_WIN_MAX_X, D_WIN_MAX_Y, D_COLOR_BIT);
 
-	//DXƒ‰ƒCƒuƒ‰ƒŠ‚Ì‰Šú‰»
+	//DXãƒ©ã‚¤ãƒ–ãƒ©ãƒªã®åˆæœŸåŒ–
 	if (DxLib_Init() == D_FAILURE)
 	{
-		throw std::string("Dxƒ‰ƒCƒuƒ‰ƒŠ‚Ì‰Šú‰»‚É¸”s‚µ‚Ü‚µ‚½\n");
+		throw std::string("DXãƒ©ã‚¤ãƒ–ãƒ©ãƒªã®åˆæœŸåŒ–ã«å¤±æ•—ã—ã¾ã—ãŸ\n");
 	}
 
-	//•`‰ææ‚ğ•\‰æ–Ê‚É”½‰f‚·‚é
+	//æç”»å…ˆã‚’è£ç”»é¢ã«åæ˜ ã™ã‚‹
 	SetDrawScreen(DX_SCREEN_BACK);
 
-	//ƒV[ƒ“‚Ì‰Šú‰»ˆ—
+	//ã‚·ãƒ¼ãƒ³ã®åˆæœŸåŒ–å‡¦ç†
 	scene->Initialize();
 
 
@@ -48,48 +48,48 @@ void Application::Run()
 
 	while (ProcessMessage() == D_SUCCESS)
 	{
-		//ƒtƒŒ[ƒ€ƒŒ[ƒg‚Ì§Œä
+		//ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ¬ãƒ¼ãƒˆã®ç”Ÿæˆ
 		UpdateDeLtaTime();
 
-		//scene‚ªtrue‚©false‚©ƒ`ƒFƒbƒN
+		//sceneãŒtrueã‹falseã‹ãƒã‚§ãƒƒã‚¯
 		exit = scene->Update(delta_second);
 
-		//I—¹ƒtƒ‰ƒO
+		//çµ‚äº†ãƒ•ãƒ©ã‚°
 		if (exit == false)
 		{
 			break;
 		}
 	}
 
-	//I—¹ˆ—
+	//çµ‚äº†å‡¦ç†å‘¼å‡º
 	Shutdown();
 }
 
 void Application::Shutdown()
 {
-	//ƒV[ƒ“‚ÌI—¹ˆ—
+	//ã‚·ãƒ¼ãƒ³ã®çµ‚äº†å‡¦ç†
 	scene->Finalize();
 
-	//Dxƒ‰ƒCƒuƒ‰ƒŠ‚ÌI—¹ˆ—
+	//DXãƒ©ã‚¤ãƒ–ãƒ©ãƒªã®çµ‚äº†å‡¦ç†
 	DxLib_End();
 }
 
 void Application::UpdateDeLtaTime()
 {
-	//Œ»İ‚ÌŠÔæ“¾
+	//ç¾åœ¨ã®æ™‚é–“å–å¾—
 	now_time = GetNowHiPerformanceCount();
 
-	// ŠJnŠÔ‚©‚çŒ»İŠÔ‚Ü‚Å‚ÉŒo‰ß‚µ‚½ŠÔ‚ğŒvZ‚·‚éiƒÊ•bj
-	// •ª‰ğ”\‚ğƒÊ•b¨•b‚É•ÏŠ·‚·‚é
+	// é–‹å§‹æ™‚åˆ»ã‹ã‚‰ç¾åœ¨æ™‚åˆ»ã¾ã§ã«çµŒéã—ãŸæ™‚é–“ã‚’è¨ˆç®—ã™ã‚‹ï¼ˆå˜ä½ç§’ï¼‰
+	// ãã®å¾Œãƒã‚¤ã‚¯ãƒ­ç§’ã‚’ç§’ã«å¤‰æ›ã™ã‚‹
 	delta_second = (float)(now_time - start_time) * 1.0e-6f;
 
-	// Œv‘ªŠJnŠÔ‚ğXV‚·‚é
+	// è¨ˆæ¸¬é–‹å§‹æ™‚åˆ»ã‚’æ›´æ–°ã™ã‚‹
 	start_time = now_time;
 
-	//ƒŠƒtƒŒƒbƒVƒ…ƒŒ[ƒg‚ğæ“¾‚·‚é
+	//ãƒªãƒ•ãƒ¬ãƒƒã‚·ãƒ¥ãƒ¬ãƒ¼ãƒˆã‚’å–å¾—ã™ã‚‹
 	refresh_rate = (float)GetRefreshRate();
 
-	//‚PƒtƒŒ[ƒ€‚ ‚½‚èŠÔ‚ª1/refresh_rate•b‚ğ’´‚¦‚½‚ç’²®‚·‚é
+	//ï¼‘ãƒ•ãƒ¬ãƒ¼ãƒ ã‚ãŸã‚Šã®æ™‚é–“ãŒ1/refresh_rateç§’ã‚’è¶…ãˆãŸã‚‰èª¿æ•´ã™ã‚‹
 	if (delta_second > (1.0f / refresh_rate))
 	{
 		delta_second = (1.0f / refresh_rate);

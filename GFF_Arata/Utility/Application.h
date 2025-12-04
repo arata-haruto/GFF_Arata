@@ -2,10 +2,10 @@
 #include "ProjectConfig.h"
 #include "Singleton.h"
 #include <string>
-#include "../Scenes/SceneManager.h"
+#include "../Scene/SceneManager.h"
 
-#define D_SUCCESS		(0)		//¬Œ÷
-#define D_FAILURE		(-1)	//¸”s
+#define D_SUCCESS		(0)		//æˆåŠŸ
+#define D_FAILURE		(-1)	//å¤±æ•—
 
 class Application : public Singleton<Application>
 {
@@ -15,7 +15,7 @@ private:
 	LONGLONG now_time;
 	float refresh_rate;
 	class SceneManager* scene;
-	bool exit;						//I—¹ƒtƒ‰ƒO
+	bool exit;						//çµ‚äº†ãƒ•ãƒ©ã‚°
 
 public:
 	Application();
@@ -28,4 +28,3 @@ public:
 private:
 	void UpdateDeLtaTime();
 };
-
