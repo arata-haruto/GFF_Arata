@@ -2,7 +2,7 @@
 #include "Singleton.h"
 #include "Vector2D.h"
 
-//マクロ定義
+//繝槭け繝ｭ螳夂ｾｩ
 #define D_KEYCODE_MAX	(256)
 #define D_BUTTON_MAX	(16)
 
@@ -17,10 +17,10 @@ enum eInputState
 class InputManager : public Singleton<InputManager>
 {
 private:
-	char now_key[D_KEYCODE_MAX];	//現在の入力値
-	char old_key[D_KEYCODE_MAX];	//前回の入力値
+	char now_key[D_KEYCODE_MAX];	//迴ｾ蝨ｨ縺ｮ蜈･蜉帛､
+	char old_key[D_KEYCODE_MAX];	//蜑榊屓縺ｮ蜈･蜉帛､
 
-	//コントローラー入力情報
+	//繧ｳ繝ｳ繝医Ο繝ｼ繝ｩ繝ｼ蜈･蜉帶ュ蝣ｱ
 	bool now_button[D_BUTTON_MAX];
 	bool old_button[D_BUTTON_MAX];
 	float trigger[2];
