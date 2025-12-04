@@ -3,16 +3,36 @@
   "WorkspaceRootPath": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Scene\\Title.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|solutionrelative:Scene\\Title.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Utility\\Application.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|solutionrelative:Utility\\Application.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Utility\\ReasoningManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|solutionrelative:Utility\\ReasoningManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Scene\\GameMain.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|solutionrelative:Scene\\GameMain.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\AppMain.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|solutionrelative:AppMain.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Scene\\GameMain.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|solutionrelative:Scene\\GameMain.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Utility\\Application.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|solutionrelative:Utility\\Application.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Utility\\ReasoningManager.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|solutionrelative:Utility\\ReasoningManager.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Utility\\ItemManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|solutionrelative:Utility\\ItemManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Scene\\InGame\\InGameScene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{F1ABC3C1-E0DC-4C97-B29F-7908A3D7C19E}|GFF_Arata.vcxproj|solutionrelative:Scene\\InGame\\InGameScene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,45 +42,104 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
+              "Title": "GameMain.cpp",
+              "DocumentMoniker": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Scene\\GameMain.cpp",
+              "RelativeDocumentMoniker": "Scene\\GameMain.cpp",
+              "ToolTip": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Scene\\GameMain.cpp",
+              "RelativeToolTip": "Scene\\GameMain.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-12-01T01:31:10.341Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "AppMain.cpp",
               "DocumentMoniker": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\AppMain.cpp",
               "RelativeDocumentMoniker": "AppMain.cpp",
               "ToolTip": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\AppMain.cpp",
               "RelativeToolTip": "AppMain.cpp",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAASAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-10-20T00:36:01.182Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-01T01:28:24.466Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "GameMain.h",
-              "DocumentMoniker": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Scene\\GameMain.h",
-              "RelativeDocumentMoniker": "Scene\\GameMain.h",
-              "ToolTip": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Scene\\GameMain.h",
-              "RelativeToolTip": "Scene\\GameMain.h",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAA==",
+              "DocumentIndex": 4,
+              "Title": "Application.h",
+              "DocumentMoniker": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Utility\\Application.h",
+              "RelativeDocumentMoniker": "Utility\\Application.h",
+              "ToolTip": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Utility\\Application.h",
+              "RelativeToolTip": "Utility\\Application.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-10-20T00:33:14.54Z"
+              "WhenOpened": "2025-12-01T01:28:12.805Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "Title.h",
-              "DocumentMoniker": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Scene\\Title.h",
-              "RelativeDocumentMoniker": "Scene\\Title.h",
-              "ToolTip": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Scene\\Title.h",
-              "RelativeToolTip": "Scene\\Title.h",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-10-20T00:32:57.607Z",
+              "Title": "Application.cpp",
+              "DocumentMoniker": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Utility\\Application.cpp",
+              "RelativeDocumentMoniker": "Utility\\Application.cpp",
+              "ToolTip": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Utility\\Application.cpp",
+              "RelativeToolTip": "Utility\\Application.cpp",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAAB4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-12-01T01:28:06.239Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ReasoningManager.cpp",
+              "DocumentMoniker": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Utility\\ReasoningManager.cpp",
+              "RelativeDocumentMoniker": "Utility\\ReasoningManager.cpp",
+              "ToolTip": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Utility\\ReasoningManager.cpp",
+              "RelativeToolTip": "Utility\\ReasoningManager.cpp",
+              "ViewState": "AgIAAL4AAAAAAAAAAAAAwNkAAAA1AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-11-25T05:35:30.003Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ReasoningManager.h",
+              "DocumentMoniker": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Utility\\ReasoningManager.h",
+              "RelativeDocumentMoniker": "Utility\\ReasoningManager.h",
+              "ToolTip": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Utility\\ReasoningManager.h",
+              "RelativeToolTip": "Utility\\ReasoningManager.h",
+              "ViewState": "AgIAACcAAAAAAAAAAAAAAD8AAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-11-26T05:06:56.67Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "ItemManager.cpp",
+              "DocumentMoniker": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Utility\\ItemManager.cpp",
+              "RelativeDocumentMoniker": "Utility\\ItemManager.cpp",
+              "ToolTip": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Utility\\ItemManager.cpp",
+              "RelativeToolTip": "Utility\\ItemManager.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-11-27T02:51:29.073Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "InGameScene.cpp",
+              "DocumentMoniker": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Scene\\InGame\\InGameScene.cpp",
+              "RelativeDocumentMoniker": "Scene\\InGame\\InGameScene.cpp",
+              "ToolTip": "C:\\PG\\2025\\GFF_Arata\\GFF_Arata\\Scene\\InGame\\InGameScene.cpp",
+              "RelativeToolTip": "Scene\\InGame\\InGameScene.cpp",
+              "ViewState": "AgIAACkBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-11-27T02:50:41.989Z"
             }
           ]
         }
