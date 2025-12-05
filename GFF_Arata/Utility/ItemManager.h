@@ -26,4 +26,8 @@ public:
     std::vector<std::string> GetCollectedItems() const;  // 収集されたアイテム名のリストを取得
     int GetCollectedCount() const;  // 収集されたアイテム数を取得
     int GetTotalCount() const { return (int)items.size(); }  // 全アイテム数を取得
+
+    // ★この関数を追加してください！
+    // 収集されていないアイテムも含め、全てのアイテムリストへの参照を返す
+    const std::vector<Item*>& GetItems() const { return items; }
 };

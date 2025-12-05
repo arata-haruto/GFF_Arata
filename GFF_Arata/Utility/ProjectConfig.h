@@ -32,4 +32,3 @@ const float& GetDeltaSecond();
 /// </summary>
 /// <returns>I—¹ó‘Ô‚Ì’l</returns>
 int ErrorThrow(std::string error_log);
-

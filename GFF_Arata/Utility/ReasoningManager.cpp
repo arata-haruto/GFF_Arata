@@ -5,251 +5,219 @@
 #include <algorithm>
 
 ReasoningManager::ReasoningManager()
-    : selectedIndex(0),
-      isActive(false),
-      isConfirmed(false),
-      deltaTimeAccumulator(0.0f)
+    : currentStep(ReasoningStep::Suspect), selectedIndex(0), isActive(false),
+    chosenSuspectIndex(-1), chosenMotiveIndex(-1), chosenWeaponIndex(-1),
+    maxLife(3), currentLife(3) // ライフは3（2回ミスOK）
 {
 }
 
 void ReasoningManager::Initialize() {
-    options.clear();
+    suspects.clear();
+    motives.clear();
+    weapons.clear();
+    currentStep = ReasoningStep::Suspect;
     selectedIndex = 0;
-    collectedEvidenceList.clear();
-    deltaTimeAccumulator = 0.0f;
+    currentLife = maxLife;
 
-    // サンプルの選択肢データ（日本語は UTF-8 で保存してください）
-    options.push_back(ReasoningOption("田中", "復讐心による",
-        std::set<std::string>{ "証拠1", "証拠2" },
-        std::set<std::string>{ "weapon", "time" }, false));
+    // === 犯人候補 (テキスト, 否定する証拠, 正解フラグ) ===
+    // 証拠「目撃証言A」を持っていると「田中」はシロだとわかり、リストから消える
+    suspects.push_back(ReasoningElement("田中（被害者の友人）", "目撃証言A", false));
+    suspects.push_back(ReasoningElement("佐藤（店のオーナー）", "レシート", false));
+    suspects.push_back(ReasoningElement("山田（元従業員）", "", true)); // 正解：否定証拠なし
+    suspects.push_back(ReasoningElement("鈴木（通り魔）", "防犯カメラ映像", false));
 
-    options.push_back(ReasoningOption("佐藤", "嫉妬",
-        std::set<std::string>{ "証拠3", "証拠2" },
-        std::set<std::string>{ "motive", "location" }, false));
+    // === 動機候補 ===
+    motives.push_back(ReasoningElement("金銭トラブル", "借用書", false));
+    motives.push_back(ReasoningElement("過去の因縁", "", true)); // 正解
+    motives.push_back(ReasoningElement("突発的な犯行", "計画メモ", false));
+    motives.push_back(ReasoningElement("口封じ", "脅迫状", false));
 
-    options.push_back(ReasoningOption("鈴木", "金銭",
-        std::set<std::string>{ "証拠1" },
-        std::set<std::string>{ "weapon" }, false));
-
-    options.push_back(ReasoningOption("山田", "過去の因縁",
-        std::set<std::string>{ "証拠2" },
-        std::set<std::string>{ "time" }, false));
-
-    options.push_back(ReasoningOption("高橋", "遺産相続",
-        std::set<std::string>{ "証拠3", "証拠1" },
-        std::set<std::string>{ "motive", "weapon" }, false));
-
-    options.push_back(ReasoningOption("伊藤", "恨みの連鎖",
-        std::set<std::string>{ "証拠2", "証拠3" },
-        std::set<std::string>{ "time", "location" }, false));
-
-    options.push_back(ReasoningOption("渡辺", "秘密の暴露",
-        std::set<std::string>{ "証拠1" },
-        std::set<std::string>{ "weapon" }, false));
-
-    options.push_back(ReasoningOption("中村", "証拠",
-        std::set<std::string>{ "証拠2" },
-        std::set<std::string>{ "time" }, false));
-
-    options.push_back(ReasoningOption("小林", "誤解",
-        std::set<std::string>{ "証拠3" },
-        std::set<std::string>{ "location" }, false));
-
-    options.push_back(ReasoningOption("加藤", "複雑な関係性",
-        std::set<std::string>{ "証拠1", "証拠2", "証拠3" },
-        std::set<std::string>{ "weapon", "time", "location" }, false));
+    // === 凶器候補 ===
+    weapons.push_back(ReasoningElement("ナイフ", "検死報告書", false));
+    weapons.push_back(ReasoningElement("鈍器（置物）", "", true)); // 正解（壊れた時計など）
+    weapons.push_back(ReasoningElement("毒物", "現場写真", false));
+    weapons.push_back(ReasoningElement("ロープ", "検死報告書", false));
 }
 
 void ReasoningManager::Update(float deltaTime) {
     if (!isActive) return;
 
-    // エフェクト更新
-    UpdateChoiceEffects(deltaTime);
-
     InputManager* input = InputManager::GetInstance();
+    const auto& options = GetCurrentOptions();
 
-    // 上移動
-    if (input->GetKeyState(KEY_INPUT_UP) == eInputState::Pressed ||
-        input->GetButtonState(XINPUT_BUTTON_DPAD_UP) == eInputState::Pressed) {
-        int newIndex = selectedIndex;
-        do {
-            newIndex--;
-            if (newIndex < 0) {
-                // 末尾の有効な要素へラップ
-                for (int i = (int)options.size() - 1; i >= 0; i--) {
-                    if (!options[i].isEliminated) {
-                        newIndex = i;
-                        break;
-                    }
-                }
-                break;
-            }
-        } while (newIndex >= 0 && options[newIndex].isEliminated);
-
-        if (newIndex >= 0 && !options[newIndex].isEliminated) {
-            selectedIndex = newIndex;
+    // 上下移動（除外されている選択肢はスキップ）
+    // ★修正: optionsが空の場合は処理しない安全策を追加
+    if (!options.empty()) {
+        if (input->GetKeyState(KEY_INPUT_UP) == eInputState::Pressed ||
+            input->GetButtonState(XINPUT_BUTTON_DPAD_UP) == eInputState::Pressed) {
+            int originalIndex = selectedIndex;
+            do {
+                selectedIndex--;
+                if (selectedIndex < 0) selectedIndex = (int)options.size() - 1;
+            } while (options[selectedIndex].isEliminated && selectedIndex != originalIndex);
         }
-    }
 
-    // 下移動
-    if (input->GetKeyState(KEY_INPUT_DOWN) == eInputState::Pressed ||
-        input->GetButtonState(XINPUT_BUTTON_DPAD_DOWN) == eInputState::Pressed) {
-        int newIndex = selectedIndex;
-        do {
-            newIndex++;
-            if (newIndex >= (int)options.size()) {
-                // 先頭の有効な要素へラップ
-                for (size_t i = 0; i < options.size(); i++) {
-                    if (!options[i].isEliminated) {
-                        newIndex = (int)i;
-                        break;
-                    }
-                }
-                break;
-            }
-        } while (newIndex < (int)options.size() && options[newIndex].isEliminated);
-
-        if (newIndex < (int)options.size() && !options[newIndex].isEliminated) {
-            selectedIndex = newIndex;
+        if (input->GetKeyState(KEY_INPUT_DOWN) == eInputState::Pressed ||
+            input->GetButtonState(XINPUT_BUTTON_DPAD_DOWN) == eInputState::Pressed) {
+            int originalIndex = selectedIndex;
+            do {
+                selectedIndex++;
+                if (selectedIndex >= (int)options.size()) selectedIndex = 0;
+            } while (options[selectedIndex].isEliminated && selectedIndex != originalIndex);
         }
     }
 
     // 決定
     if (input->GetKeyState(KEY_INPUT_Z) == eInputState::Pressed ||
         input->GetButtonState(XINPUT_BUTTON_A) == eInputState::Pressed) {
-        if (selectedIndex >= 0 && selectedIndex < (int)options.size() &&
-            !options[selectedIndex].isEliminated) {
-            isConfirmed = true;
+        ConfirmSelection();
+    }
+
+    // キャンセル（前のステップに戻る）
+    if ((input->GetKeyState(KEY_INPUT_X) == eInputState::Pressed ||
+        input->GetButtonState(XINPUT_BUTTON_B) == eInputState::Pressed) && currentStep != ReasoningStep::Suspect) {
+
+        if (currentStep == ReasoningStep::Motive) currentStep = ReasoningStep::Suspect;
+        else if (currentStep == ReasoningStep::Weapon) currentStep = ReasoningStep::Motive;
+        else if (currentStep == ReasoningStep::Confirmation) currentStep = ReasoningStep::Weapon;
+
+        selectedIndex = 0;
+    }
+}
+
+void ReasoningManager::ConfirmSelection() {
+    if (currentStep == ReasoningStep::Suspect) {
+        chosenSuspectIndex = selectedIndex;
+        currentStep = ReasoningStep::Motive;
+        selectedIndex = 0;
+    }
+    else if (currentStep == ReasoningStep::Motive) {
+        chosenMotiveIndex = selectedIndex;
+        currentStep = ReasoningStep::Weapon;
+        selectedIndex = 0;
+    }
+    else if (currentStep == ReasoningStep::Weapon) {
+        chosenWeaponIndex = selectedIndex;
+        currentStep = ReasoningStep::Confirmation;
+        selectedIndex = 0; // Yes/No選択用（0:推理する 1:見直す）
+    }
+    else if (currentStep == ReasoningStep::Confirmation) {
+        if (selectedIndex == 0) {
+            CheckAnswer(); // 推理実行！
+        }
+        else {
+            ResetToFirstStep(); // 最初からやり直し
+        }
+    }
+
+    // 次のステップの選択肢がすべて除外されていた場合の安全策（先頭を探す）
+    if (currentStep != ReasoningStep::Confirmation) {
+        const auto& options = GetCurrentOptions();
+        for (int i = 0; i < options.size(); i++) {
+            if (!options[i].isEliminated) {
+                selectedIndex = i;
+                break;
+            }
         }
     }
 }
 
-void ReasoningManager::Draw() const {
-    if (!isActive) return;
+void ReasoningManager::CheckAnswer() {
+    bool isSuspectCorrect = suspects[chosenSuspectIndex].isCorrect;
+    bool isMotiveCorrect = motives[chosenMotiveIndex].isCorrect;
+    bool isWeaponCorrect = weapons[chosenWeaponIndex].isCorrect;
 
-    int x = 100;
-    int y = 100;
-    int boxWidth = 600;
-    int boxHeight = 500;
-
-    DrawBox(x - 20, y - 40, x + boxWidth, y + boxHeight,
-        GetColor(0, 0, 0), TRUE);
-    DrawBox(x - 20, y - 40, x + boxWidth, y + boxHeight,
-        GetColor(255, 255, 255), FALSE);
-
-    DrawFormatString(x, y - 30, GetColor(255, 255, 255), "推理 - 候補一覧");
-
-    int drawY = y;
-
-    for (size_t i = 0; i < options.size(); i++) {
-        if (options[i].isEliminated) continue;
-
-        bool isSelected = ((int)i == selectedIndex);
-
-        // ChoiceEffectManager に描画を任せる（必要ならカスタム描画）
-        ChoiceEffectManager::DrawChoice(x, drawY, boxWidth, 36, options[i], isSelected, -1);
-
-        drawY += 40;
+    if (isSuspectCorrect && isMotiveCorrect && isWeaponCorrect) {
+        // 完全正解！ -> InGameScene側でクリア検知
     }
+    else {
+        // 不正解 -> ライフ減少
+        currentLife--;
+        if (currentLife > 0) {
+            // まだライフがあるなら最初から
+            ResetToFirstStep();
+        }
+        else {
+            // ゲームオーバー -> InGameScene側で検知
+        }
+    }
+}
 
-    DrawFormatString(x, drawY + 20, GetColor(200, 200, 200), "Zキーで決定");
+void ReasoningManager::ResetToFirstStep() {
+    currentStep = ReasoningStep::Suspect;
+    selectedIndex = 0;
+    // 最初の有効な選択肢へ
+    for (int i = 0; i < suspects.size(); i++) {
+        if (!suspects[i].isEliminated) {
+            selectedIndex = i;
+            break;
+        }
+    }
 }
 
 void ReasoningManager::FilterOptions(const std::vector<std::string>& collectedEvidence) {
-    std::set<std::string> evidenceSet;
-    for (const auto& ev : collectedEvidence) {
-        evidenceSet.insert(ev);
-    }
+    auto filter = [&](std::vector<ReasoningElement>& list) {
+        for (auto& item : list) {
+            if (item.contradictoryEvidence.empty()) continue; // 否定証拠設定なしなら消えない
 
-    for (auto& option : options) {
-        bool hasAllEvidence = true;
-        for (const auto& required : option.requiredEvidence) {
-            if (evidenceSet.find(required) == evidenceSet.end()) {
-                hasAllEvidence = false;
-                break;
+            // 持っている証拠リストの中に、この選択肢を否定するものがあるか？
+            for (const auto& evidence : collectedEvidence) {
+                if (evidence == item.contradictoryEvidence) {
+                    item.isEliminated = true; // 証拠があるので「シロ」としてリストから消す
+                    break;
+                }
             }
         }
+        };
 
-        if (!hasAllEvidence) {
-            option.isEliminated = true;
-        } else {
-            option.isEliminated = false;
-        }
-    }
+    filter(suspects);
+    filter(motives);
+    filter(weapons);
+}
 
-    // 選択中が除外されていたら最初の有効な選択肢へ
-    if (selectedIndex >= 0 && selectedIndex < (int)options.size() && options[selectedIndex].isEliminated) {
-        for (size_t i = 0; i < options.size(); i++) {
-            if (!options[i].isEliminated) {
-                selectedIndex = (int)i;
-                break;
-            }
-        }
+const std::vector<ReasoningElement>& ReasoningManager::GetCurrentOptions() const {
+    if (currentStep == ReasoningStep::Suspect) return suspects;
+    if (currentStep == ReasoningStep::Motive) return motives;
+    if (currentStep == ReasoningStep::Weapon) return weapons;
+
+    // ★修正点: 最終確認画面（Confirmation）用に、ダミーの選択肢（2つ）を返すように変更
+    // これにより、Update関数内のループ処理で空の配列にアクセスしてクラッシュするのを防ぎます
+    static std::vector<ReasoningElement> confirmationDummy = {
+        ReasoningElement("Yes", "", false),
+        ReasoningElement("No", "", false)
+    };
+    return confirmationDummy;
+}
+
+std::string ReasoningManager::GetStepTitle() const {
+    switch (currentStep) {
+    case ReasoningStep::Suspect: return "Step 1: 犯人は誰だ？";
+    case ReasoningStep::Motive:  return "Step 2: 動機は何だ？";
+    case ReasoningStep::Weapon:  return "Step 3: 凶器は何だ？";
+    case ReasoningStep::Confirmation: return "最終確認：これで間違いないか？";
+    default: return "";
     }
 }
 
-bool ReasoningManager::IsComplete() const {
-    int remainingCount = 0;
-    for (const auto& option : options) {
-        if (!option.isEliminated) remainingCount++;
-    }
-    return remainingCount <= 1;
+std::string ReasoningManager::GetCurrentSelectionText() const {
+    std::string s = (chosenSuspectIndex >= 0) ? suspects[chosenSuspectIndex].text : "???";
+    std::string m = (chosenMotiveIndex >= 0) ? motives[chosenMotiveIndex].text : "???";
+    std::string w = (chosenWeaponIndex >= 0) ? weapons[chosenWeaponIndex].text : "???";
+    return "犯人:" + s + " / 動機:" + m + " / 凶器:" + w;
 }
 
-const ReasoningOption& ReasoningManager::GetSelectedOption() const {
-    // 静的オブジェクトを返す（安全に初期化される）
-    static const ReasoningOption emptyOption = ReasoningOption();
-    
-    // 範囲チェックとベクターの有効性チェック
-    if (selectedIndex >= 0 && selectedIndex < (int)options.size() && !options.empty()) {
-        return options[selectedIndex];
-    }
-    return emptyOption;
+bool ReasoningManager::IsGameClear() const {
+    // ライフが残っていて、確認フェーズで正解した場合のみここに来るロジックにするか、
+    // あるいは外部から呼び出すフラグを持たせるのが良いが、簡易的に
+    // ライフ更新後のチェックで判定する
+    // 本来はCheckAnswerで正解フラグを立てるべきだが、InGameScene側で管理しているためここでは常にfalseを返す
+    // （InGameScene側で管理する場合はここでの実装は不要だが、インターフェースとして残す）
+    return false;
 }
 
-bool ReasoningManager::CheckChoiceEnabled(
-    const ReasoningOption& option,
-    const std::set<std::string>& collectedTags
-) const {
-    return ChoiceEffectManager::CheckChoiceEnabled(option, collectedTags);
+bool ReasoningManager::IsGameOver() const {
+    return currentLife <= 0;
 }
 
-void ReasoningManager::UpdateChoiceEffects(float deltaTime) {
-    // エフェクトの更新のみを行う（有効性の判定は FilterOptionsByTags で行う）
-    for (auto& option : options) {
-        ChoiceEffectManager::UpdateChoiceEffect(option, deltaTime);
-    }
-}
-
-void ReasoningManager::FilterOptionsByTags(const std::vector<Evidence>& evidenceList) {
-    // 収集されたタグを抽出
-    std::set<std::string> collectedTags;
-    for (const auto& evidence : evidenceList) {
-        for (const auto& tag : evidence.tags) {
-            collectedTags.insert(tag);
-        }
-    }
-
-    for (auto& option : options) {
-        bool wasEliminated = option.isEliminated;
-        bool isEnabled = CheckChoiceEnabled(option, collectedTags);
-        option.isEliminated = !isEnabled;
-
-        if (!wasEliminated && option.isEliminated) {
-            option.effectState = ChoiceEffectState::Flash;
-            option.flashTimer = 0.0f;
-            option.fadeTimer = 0.0f;
-            option.alpha = 255.0f;
-        }
-    }
-
-    // 選択中が除外されていたら最初の有効な選択肢へ
-    if (selectedIndex >= 0 && selectedIndex < (int)options.size() && options[selectedIndex].isEliminated) {
-        for (size_t i = 0; i < options.size(); i++) {
-            if (!options[i].isEliminated) {
-                selectedIndex = (int)i;
-                break;
-            }
-        }
-    }
-}
+// 描画はUIクラスに任せるため空
+void ReasoningManager::Draw() const {}
