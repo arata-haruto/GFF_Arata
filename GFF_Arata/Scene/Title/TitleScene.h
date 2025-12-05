@@ -41,4 +41,3 @@ public:
 	void SetUpSelectMenuType();
 	void SetDownSelectMenuType();
 };
-

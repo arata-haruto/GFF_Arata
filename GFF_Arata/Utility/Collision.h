@@ -12,29 +12,11 @@ enum eObjectType
 	eSord
 };
 
-//åªç›ÇÃÉåÅ[Éìà íu
-enum eNowLane
-{
-	eNULL,
-	eLEFT,
-	eMID,
-	eRIGHT
-};
-
-enum eSide
-{
-	UP,
-	RIGHT,
-	DOWN,
-	LEFT,
-	NONE
-};
 
 class Collision
 {
 public:
 	bool is_blocking;
-	eNowLane now_lane;
 	Vector2D box_size;
 	Vector2D pivot;
 	eObjectType object_type;
@@ -43,4 +25,3 @@ public:
 	bool IsCheckHitTarget(eObjectType object_type) const;
 	bool IsCheckHitCollision(Collision target1, Collision target2);
 };
-

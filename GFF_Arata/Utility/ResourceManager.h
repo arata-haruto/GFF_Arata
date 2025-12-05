@@ -22,4 +22,3 @@ private:
 	void UnloadImageResourceData();			//ƒƒ‚ƒŠ‚ÌŠJ•ú
 	void UnloadSoundResourceData();			//ƒƒ‚ƒŠ‚ÌŠJ•ú
 };
-

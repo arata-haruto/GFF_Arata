@@ -1,6 +1,6 @@
 #pragma once
 #include "ProjectConfig.h"
-#include "Singleton.h"
+#include "singleton.h"
 #include <string>
 #include "../Scene/SceneManager.h"
 

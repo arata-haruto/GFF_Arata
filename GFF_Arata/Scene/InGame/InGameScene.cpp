@@ -2,9 +2,6 @@
 #include "../SceneFactory.h"
 #include "../../Utility/InputManager.h"
 #include "../../Utility/ResourceManager.h"
-#include "../../Utility/ItemManager.h"
-#include "../../Utility/ReasoningManager.h"
-#include "../../Utility/ReasoningUI.h"
 #include "../../Utility/Vector2D.h"
 #include "../../Objects/Player.h"
 #include "../../Objects/Floor.h"
@@ -13,382 +10,445 @@
 #include <sstream>
 #include <string>
 #include <cmath>
-#include <chrono>
 
-const int MAP_WIDTH = 20;
-const int MAP_HEIGHT = 10;
-int mapData[MAP_HEIGHT][MAP_WIDTH];
-
-Item* items[3];
+// 定数定義
+const float SCREEN_WIDTH = 1280.0f;
+const float SCREEN_HEIGHT = 720.0f;
+const float WORLD_WIDTH = 8000.0f; // 広大なマップ
 
 Floor g_floor;
 
-bool LoadMapData(const char* filename);
-
-ItemManager itemManager;
-
+// コンストラクタ
 InGameScene::InGameScene()
-    : currentPhase(GamePhase::Opening),
-    timeLimit(120.0f),
-    remainingTime(120.0f),
-    allEvidenceCollected(false),
-    reasoningManager(nullptr),
-    reasoningUI(nullptr),
-    showResult(false),
-    isCorrect(false),
-    resultDisplayTime(0.0f),
-    cameraX(0.0f)
+	: currentPhase(GamePhase::Opening),
+	timeLimit(60.0f),
+	remainingTime(60.0f),
+	allEvidenceCollected(false),
+	reasoningManager(nullptr),
+	reasoningUI(nullptr),
+	showResult(false),
+	isCorrect(false),
+	isGameOver(false),
+	resultDisplayTime(0.0f),
+	cameraX(0.0f),
+	player1(nullptr),
+	mg_barPosition(0.0f),
+	mg_barSpeed(100.0f),
+	mg_targetItem(nullptr),
+	mg_resultTimer(0.0f),
+	mg_lastResultSuccess(false),
+	currentAreaIndex(0),
+	mainbgm(-1),
+	se_success(-1),
+	se_fail(-1)
 {
+	for (int i = 0; i < 4; i++) bgHandles[i] = -1;
+}
+
+InGameScene::~InGameScene()
+{
+	Finalize();
 }
 
 void InGameScene::Initialize()
 {
-    LoadMapData("map.csv");
+	player1 = new Player();
+	player1->Initialize();
 
-    player1 = new Player();
-    player1->Initialize();
-    g_floor.Initialize();
+	g_floor.Initialize();
 
-    itemManager.Add(new Item(400, 500, "証拠1", "証拠欄に追加された"));
-    itemManager.Add(new Item(800, 500, "証拠2", "証拠欄に追加された"));
-    itemManager.Add(new Item(1200, 500, "証拠3", "証拠欄に追加された"));
-    itemManager.Add(new Item(1600, 480, "証拠4", "証拠欄に追加された"));
-    itemManager.Add(new Item(2000, 520, "証拠5", "証拠欄に追加された"));
-    itemManager.Add(new Item(2400, 490, "証拠6", "証拠欄に追加された"));
-    itemManager.Add(new Item(2800, 510, "証拠7", "証拠欄に追加された"));
-    itemManager.Add(new Item(3200, 500, "証拠8", "証拠欄に追加された"));
-    itemManager.Init();
+	// --- アイテム配置（エリア全体に分散）---
+	itemManager.Init();
+	// Area 1: 商店街
+	itemManager.Add(new Item(600, 500, "謎のメモ", "『1分で片付ける』と書かれている。"));
+	// Area 2: 公園
+	itemManager.Add(new Item(2500, 500, "レシート", "事件時刻に近い時間のレシートだ。"));
+	itemManager.Add(new Item(3000, 500, "目撃証言A", "「田中さんはあの時、別の場所にいたよ」"));
+	// Area 3: 裏路地
+	itemManager.Add(new Item(4500, 500, "防犯カメラ映像", "鈴木とは別の人物が映っている。"));
+	// Area 4: 倉庫街
+	itemManager.Add(new Item(6500, 500, "検死報告書", "死因は絞殺のようだ。ナイフ傷はない。"));
 
-    reasoningManager = new ReasoningManager();
-    reasoningManager->Initialize();
-    reasoningManager->SetActive(false);
+	// --- 推理システム初期化 ---
+	reasoningManager = new ReasoningManager();
+	reasoningManager->Initialize();
+	reasoningManager->SetActive(false);
 
-    // UI
-    reasoningUI = new ReasoningUI();
-    reasoningUI->Initialize();
+	reasoningUI = new ReasoningUI();
+	reasoningUI->Initialize();
 
-    currentPhase = GamePhase::Opening;
-    timeLimit = 120.0f;
-    remainingTime = timeLimit;
-    allEvidenceCollected = false;
-    cameraX = 0.0f;
+	currentPhase = GamePhase::Opening;
+	remainingTime = timeLimit;
+	allEvidenceCollected = false;
+	cameraX = 0.0f;
 
-    // BGM
-    mainbgm = LoadSoundMem("Resource/Sound/BGM.mp3");
-    if (mainbgm != -1) {
-        PlaySoundMem(mainbgm, DX_PLAYTYPE_LOOP);
-    }
+	// --- 背景読み込み ---
+	// ※本来は別々の画像を読み込むが、今は同じ画像を流用し、色味で変化をつける
+	bgHandles[0] = LoadGraph("Resource/Background/BG.jpg"); // 商店街
+	bgHandles[1] = LoadGraph("Resource/Background/BG.jpg"); // 公園（後で差し替え推奨）
+	bgHandles[2] = LoadGraph("Resource/Background/BG.jpg"); // 裏路地
+	bgHandles[3] = LoadGraph("Resource/Background/BG.jpg"); // 倉庫
 
-    back_ground_image = LoadGraph("Resource/Background/BG.jpg");
-    if (back_ground_image == -1) {
-        printfDx("読み込めない\n");
-    }
+	mainbgm = LoadSoundMem("Resource/Sound/BGM.mp3");
+	se_success = LoadSoundMem("Resource/Sound/GetItem.mp3");
+	se_fail = LoadSoundMem("Resource/Sound/footSE.mp3");
+
+	if (mainbgm != -1) {
+		ChangeVolumeSoundMem(180, mainbgm);
+		PlaySoundMem(mainbgm, DX_PLAYTYPE_LOOP);
+	}
 }
 
 eSceneType InGameScene::Update(float delta_second)
 {
-    InputManager* input = InputManager::GetInstance();
+	InputManager* input = InputManager::GetInstance();
 
-    if (currentPhase == GamePhase::Opening) {
+	switch (currentPhase)
+	{
+	case GamePhase::Opening:
+		if (input->GetKeyState(KEY_INPUT_Z) == eInputState::Pressed ||
+			input->GetButtonState(XINPUT_BUTTON_A) == eInputState::Pressed)
+		{
+			currentPhase = GamePhase::EvidenceCollection;
+		}
+		break;
 
-        if (input->GetKeyState(KEY_INPUT_Z) == eInputState::Pressed ||
-            input->GetButtonState(XINPUT_BUTTON_A) == eInputState::Pressed)
-        {
-            currentPhase = GamePhase::EvidenceCollection;
-        }
-    }
-    else if (currentPhase == GamePhase::EvidenceCollection) {
+	case GamePhase::EvidenceCollection:
+		if (player1) player1->Update();
 
-        if (player1) player1->Update();
+		// エリア更新
+		UpdateBackground();
 
-        if (input->GetKeyState(KEY_INPUT_A) == eInputState::Pressed ||
-            input->GetButtonState(XINPUT_BUTTON_START) == eInputState::Pressed)
-        {
-            return eSceneType::eTitle;
-        }
+		// アイテム管理更新
+		itemManager.Update(player1->GetX(), player1->GetY(), delta_second);
 
-        if (input->GetKeyState(KEY_INPUT_E) == eInputState::Pressed) {
-            itemManager.ToggleList();
-        }
+		// Eキーでリスト表示
+		if (input->GetKeyState(KEY_INPUT_E) == eInputState::Pressed) {
+			itemManager.ToggleList();
+		}
 
-        itemManager.Update(player1->GetX(), player1->GetY(), delta_second);
+		// カメラ追従
+		{
+			float playerX = player1->GetX();
+			float targetCameraX = playerX - SCREEN_WIDTH / 2.0f;
+			if (targetCameraX < 0.0f) targetCameraX = 0.0f;
+			if (targetCameraX > WORLD_WIDTH - SCREEN_WIDTH) targetCameraX = WORLD_WIDTH - SCREEN_WIDTH;
+			cameraX += (targetCameraX - cameraX) * 5.0f * delta_second;
+		}
 
-        const float screenW = 1280.0f;
-        const float mapWidth = 4000.0f;
-        float playerX = player1->GetX();
+		// ミニゲーム開始判定
+		if (input->GetKeyState(KEY_INPUT_Z) == eInputState::Pressed ||
+			input->GetButtonState(XINPUT_BUTTON_A) == eInputState::Pressed)
+		{
+			const std::vector<Item*>& items = itemManager.GetItems();
+			for (Item* item : items) {
+				if (item == nullptr) continue;
+				if (!item->GetIsCollected()) {
+					float dx = std::abs(player1->GetX() - item->GetX());
+					float dy = std::abs(player1->GetY() - item->GetY());
+					if (dx < 80.0f && dy < 150.0f) {
+						StartMiniGame(item);
+						break;
+					}
+				}
+			}
+		}
 
-        float targetCameraX = playerX - screenW / 2.0f;
-        if (targetCameraX < 0.0f) targetCameraX = 0.0f;
-        if (targetCameraX > mapWidth - screenW) targetCameraX = mapWidth - screenW;
+		remainingTime -= delta_second;
+		if (itemManager.GetCollectedCount() >= itemManager.GetTotalCount()) {
+			allEvidenceCollected = true;
+		}
+		if (remainingTime <= 0.0f || allEvidenceCollected) {
+			remainingTime = 0.0f;
+			TransitionToReasoning();
+		}
+		break;
 
-        cameraX = targetCameraX;
+	case GamePhase::MiniGame:
+		UpdateMiniGame(delta_second);
+		remainingTime -= delta_second;
+		if (remainingTime <= 0.0f) {
+			remainingTime = 0.0f;
+			TransitionToReasoning();
+		}
+		break;
 
-        remainingTime -= delta_second;
-        if (remainingTime < 0.0f) remainingTime = 0.0f;
+	case GamePhase::Reasoning:
+		if (showResult) {
+			// 結果表示フェーズ
+			resultDisplayTime += delta_second;
+			if (resultDisplayTime >= 5.0f) {
+				return eSceneType::eTitle;
+			}
+		}
+		else if (reasoningManager) {
+			// 推理操作（入力処理や判定はReasoningManager内部で行われる）
+			reasoningManager->Update(delta_second);
 
-        if (itemManager.GetCollectedCount() >= itemManager.GetTotalCount()) {
-            allEvidenceCollected = true;
-        }
+			// ライフ0でゲームオーバー判定
+			if (reasoningManager->IsGameOver()) {
+				isCorrect = false;
+				isGameOver = true;
+				showResult = true;
+				resultDisplayTime = 0.0f;
+				// 失敗SE
+				if (se_fail != -1) PlaySoundMem(se_fail, DX_PLAYTYPE_BACK);
+			}
+			// ゲームクリア判定
+			else if (reasoningManager->IsGameClear()) {
+				isCorrect = true;
+				isGameOver = false;
+				showResult = true;
+				resultDisplayTime = 0.0f;
+				// 成功SE
+				if (se_success != -1) PlaySoundMem(se_success, DX_PLAYTYPE_BACK);
+			}
+		}
+		break;
+	}
 
-        if (remainingTime <= 0.0f || allEvidenceCollected) {
-            TransitionToReasoning();
-        }
-    }
-    else if (currentPhase == GamePhase::Reasoning) {
+	return GetNowSceneType();
+}
 
-        if (showResult) {
-            resultDisplayTime += delta_second;
-            if (resultDisplayTime >= 3.0f) {
-                return eSceneType::eTitle;
-            }
-        }
-        else if (reasoningManager) {
-
-            reasoningManager->Update(delta_second);
-
-            if (reasoningManager->IsConfirmed()) {
-                const ReasoningOption& selected = reasoningManager->GetSelectedOption();
-                isCorrect = CheckAnswer(selected);
-                showResult = true;
-                resultDisplayTime = 0.0f;
-                reasoningManager->ResetConfirmed();
-            }
-        }
-    }
-
-    return GetNowSceneType();
+void InGameScene::UpdateBackground() {
+	if (player1) {
+		float x = player1->GetX();
+		// 8000のマップを4分割 (2000ずつ)
+		if (x < 2000) currentAreaIndex = 0; // 商店街
+		else if (x < 4000) currentAreaIndex = 1; // 公園
+		else if (x < 6000) currentAreaIndex = 2; // 裏路地
+		else currentAreaIndex = 3; // 倉庫
+	}
 }
 
 void InGameScene::Draw() const
 {
-    if (currentPhase == GamePhase::Opening) {
-        DrawOpening();
-    }
-    else if (currentPhase == GamePhase::EvidenceCollection) {
+	// 背景描画（エリアごとに色を変えて「場所が変わった感」を出す）
+	int handle = bgHandles[currentAreaIndex];
+	if (handle != -1) {
+		// 簡易的な色調補正でエリアを区別
+		if (currentAreaIndex == 0) SetDrawBright(255, 255, 255); // 通常
+		else if (currentAreaIndex == 1) SetDrawBright(200, 255, 200); // 緑っぽい（公園）
+		else if (currentAreaIndex == 2) SetDrawBright(150, 150, 255); // 青っぽい（裏路地）
+		else if (currentAreaIndex == 3) SetDrawBright(100, 100, 100); // 暗い（倉庫）
 
-        if (back_ground_image != -1) {
-            DrawGraph(0, 0, back_ground_image, TRUE);
-        }
+		DrawGraph(0, 0, handle, TRUE);
+		SetDrawBright(255, 255, 255); // 戻す
+	}
 
-        g_floor.Draw(cameraX);
+	if (currentPhase == GamePhase::Opening) {
+		DrawOpening();
+	}
+	else if (currentPhase == GamePhase::EvidenceCollection || currentPhase == GamePhase::MiniGame) {
+		g_floor.Draw(cameraX);
+		itemManager.Draw(cameraX);
+		if (player1) player1->Draw(cameraX);
+		DrawTimer();
+		DrawPhaseInfo();
 
-        itemManager.Draw(cameraX);
+		// 現在のエリア名表示
+		const char* areaNames[] = { "Area 1: 商店街", "Area 2: 公園", "Area 3: 裏路地", "Area 4: 倉庫街" };
+		DrawFormatString(1100, 20, GetColor(200, 255, 255), "%s", areaNames[currentAreaIndex]);
 
-        if (player1) player1->Draw(cameraX);
+		if (currentPhase == GamePhase::MiniGame) {
+			DrawMiniGame();
+		}
+	}
+	else if (currentPhase == GamePhase::Reasoning) {
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 200); // 濃い暗転
+		DrawBox(0, 0, (int)SCREEN_WIDTH, (int)SCREEN_HEIGHT, GetColor(0, 0, 0), TRUE);
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-        DrawTimer();
-        DrawPhaseInfo();
-    }
-    else if (currentPhase == GamePhase::Reasoning) {
-
-        if (showResult) {
-            DrawResult();
-        }
-        else {
-
-            if (back_ground_image != -1) {
-                SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
-                DrawGraph(0, 0, back_ground_image, TRUE);
-                SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-            }
-
-            if (reasoningUI && reasoningManager) {
-                reasoningUI->Draw(reasoningManager);
-            }
-        }
-    }
-}
-
-void InGameScene::Finalize()
-{
-    // BGM停止
-    if (mainbgm >= 0) {
-        StopSoundMem(mainbgm);
-        DeleteSoundMem(mainbgm);
-        mainbgm = -1;
-    }
-
-    if (back_ground_image >= 0) {
-        DeleteGraph(back_ground_image);
-        back_ground_image = -1;
-    }
-
-    delete player1;
-    player1 = nullptr;
-
-    delete reasoningManager;
-    reasoningManager = nullptr;
-
-    delete reasoningUI;
-    reasoningUI = nullptr;
-}
-
-bool LoadMapData(const char* filename)
-{
-    std::ifstream file(filename);
-    if (!file.is_open()) {
-        printfDx("Map読み込み失敗: %s\n", filename);
-        return false;
-    }
-
-    std::string line;
-    int y = 0;
-
-    while (std::getline(file, line) && y < MAP_HEIGHT) {
-
-        std::stringstream ss(line);
-        std::string cell;
-        int x = 0;
-
-        while (std::getline(ss, cell, ',') && x < MAP_WIDTH) {
-            mapData[y][x] = std::stoi(cell);
-            x++;
-        }
-        y++;
-    }
-
-    file.close();
-    return true;
-}
-
-eSceneType InGameScene::GetNowSceneType() const
-{
-    return eSceneType::eInGame;
-}
-
-void InGameScene::TransitionToReasoning()
-{
-    currentPhase = GamePhase::Reasoning;
-
-    if (reasoningManager) {
-
-        std::vector<std::string> collectedEvidence = itemManager.GetCollectedItems();
-
-        reasoningManager->FilterOptions(collectedEvidence);
-        reasoningManager->SetActive(true);
-
-        if (reasoningUI) {
-            reasoningUI->SetEvidenceList(collectedEvidence);
-        }
-    }
-}
-
-void InGameScene::DrawTimer() const
-{
-    int x = 20;
-    int y = 20;
-
-    int boxWidth = 200;
-    int boxHeight = 60;
-
-    DrawBox(x - 10, y - 10, x + boxWidth, y + boxHeight,
-        GetColor(0, 0, 0), TRUE);
-
-    DrawBox(x - 10, y - 10, x + boxWidth, y + boxHeight,
-        GetColor(100, 100, 100), FALSE);
-
-    int minutes = (int)(remainingTime / 60.0f);
-    int seconds = (int)(remainingTime) % 60;
-
-    unsigned int color =
-        remainingTime < 60.0f ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
-
-    DrawFormatString(x, y, color, "Time: %02d:%02d", minutes, seconds);
-}
-
-void InGameScene::DrawPhaseInfo() const
-{
-    int x = 20;
-    int y = 90;
-    
-    DrawFormatString(x, y, GetColor(255, 255, 255), "証拠: %d/%d", 
-        itemManager.GetCollectedCount(), itemManager.GetTotalCount());
+		if (showResult) {
+			DrawResult();
+		}
+		else if (reasoningUI && reasoningManager) {
+			reasoningUI->Draw(reasoningManager);
+		}
+	}
 }
 
 void InGameScene::DrawOpening() const
 {
-    int x = 100;
-    int y = 100;
-    int boxWidth = 1000;
-    int boxHeight = 500;
+	// 背景を少し暗く
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
+	DrawBox(0, 0, (int)SCREEN_WIDTH, (int)SCREEN_HEIGHT, GetColor(0, 0, 0), TRUE);
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-    // 背景ボックス
-    DrawBox(x - 20, y - 40, x + boxWidth, y + boxHeight,
-        GetColor(0, 0, 0), TRUE);
-    DrawBox(x - 20, y - 40, x + boxWidth, y + boxHeight,
-        GetColor(255, 255, 255), FALSE);
+	// ノベルゲーム風UI
+	// 立ち絵スペース（左側）
+	DrawBox(100, 100, 400, 600, GetColor(50, 50, 50), TRUE);
+	DrawFormatString(180, 300, GetColor(255, 255, 255), "【立ち絵スペース】");
+	DrawFormatString(180, 330, GetColor(255, 255, 255), "主人公 or 警察");
 
-    DrawFormatString(x, y - 30, GetColor(255, 255, 255), "オープニング");
+	// メッセージウィンドウ（下部）
+	int msgX = 50;
+	int msgY = 500;
+	int msgW = 1180;
+	int msgH = 200;
 
-    int currentY = y + 20;
+	// ウィンドウ枠
+	DrawBox(msgX, msgY, msgX + msgW, msgY + msgH, GetColor(0, 0, 0), TRUE); // 背景
+	DrawBox(msgX, msgY, msgX + msgW, msgY + msgH, GetColor(255, 255, 255), FALSE); // 枠線
 
-    // === 事件サマリーページ ===
-    std::vector<std::string> lines = {
-        "【場所】",
-        "・午前中某所 駅前の雑貨店",
-        "",
-        "【時間】",
-        "・PM 10:30頃",
-        "",
-        "【事件サマリー】",
-        "容疑者は店に入って倒れているところを発見されました。",
-        "現場には大量の手紙があり、一部の品物は踏み落とされていました。",
-        "",
-        "【目撃情報】",
-        "・周辺付近で悲鳴を聞いたという情報",
-        "・店に付け巡る走り去る影を見たとの情報",
-        "",
-        "【あなたの目的】",
-        "- 集めた証拠から真犯人を推理する",
-        "- 不審な情報や矛盾点を調べる",
-        "- 論理的に犯人を詰め込む",
-        "",
-        "Zキー または Aボタン で開始"
-    };
+	// 名前枠
+	DrawBox(msgX + 20, msgY - 30, msgX + 200, msgY, GetColor(0, 0, 0), TRUE);
+	DrawBox(msgX + 20, msgY - 30, msgX + 200, msgY, GetColor(255, 255, 255), FALSE);
+	DrawFormatString(msgX + 40, msgY - 25, GetColor(255, 255, 0), "警察官");
 
-    for (const auto& line : lines) {
-        DrawFormatString(x, currentY, GetColor(255, 255, 255), line.c_str());
-        currentY += 30;
-    }
+	// テキスト
+	DrawFormatString(msgX + 40, msgY + 40, GetColor(255, 255, 255), "「探偵ごときが現場をうろつくな！ 邪魔だ！」");
+	DrawFormatString(msgX + 40, msgY + 80, GetColor(255, 255, 255), "「...え？ 1分で解決するだと？ 面白い、やってみろ」");
+
+	DrawFormatString(msgX + 900, msgY + 150, GetColor(200, 200, 200), "Zキーで開始 ▼");
+}
+
+void InGameScene::Finalize()
+{
+	if (mainbgm != -1) { StopSoundMem(mainbgm); DeleteSoundMem(mainbgm); mainbgm = -1; }
+	if (se_success != -1) { DeleteSoundMem(se_success); se_success = -1; }
+	if (se_fail != -1) { DeleteSoundMem(se_fail); se_fail = -1; }
+
+	// 背景画像の削除
+	for (int i = 0; i < 4; i++) {
+		if (bgHandles[i] != -1) {
+			DeleteGraph(bgHandles[i]);
+			bgHandles[i] = -1;
+		}
+	}
+
+	delete player1; player1 = nullptr;
+	delete reasoningManager; reasoningManager = nullptr;
+	delete reasoningUI; reasoningUI = nullptr;
+}
+
+// === 未解決だった関数の実装 ===
+
+eSceneType InGameScene::GetNowSceneType() const
+{
+	return eSceneType::eInGame;
+}
+
+void InGameScene::TransitionToReasoning()
+{
+	if (player1) player1->StopAudio();
+
+	currentPhase = GamePhase::Reasoning;
+	if (reasoningManager) {
+		std::vector<std::string> collected = itemManager.GetCollectedItems();
+		reasoningManager->FilterOptions(collected);
+		reasoningManager->SetActive(true);
+	}
+}
+
+void InGameScene::StartMiniGame(Item* item)
+{
+	currentPhase = GamePhase::MiniGame;
+	mg_targetItem = item;
+	mg_barPosition = 0.0f;
+	mg_barSpeed = 200.0f;
+	mg_targetMin = 40.0f;
+	mg_targetMax = 60.0f;
+	mg_resultTimer = 0.0f;
+}
+
+void InGameScene::UpdateMiniGame(float delta_second)
+{
+	if (mg_resultTimer > 0.0f) {
+		mg_resultTimer -= delta_second;
+		if (mg_resultTimer <= 0.0f) {
+			currentPhase = GamePhase::EvidenceCollection;
+		}
+		return;
+	}
+
+	InputManager* input = InputManager::GetInstance();
+	mg_barPosition += mg_barSpeed * delta_second;
+	if (mg_barPosition > 100.0f) {
+		mg_barPosition = 0.0f;
+	}
+
+	if (input->GetKeyState(KEY_INPUT_Z) == eInputState::Pressed ||
+		input->GetButtonState(XINPUT_BUTTON_A) == eInputState::Pressed)
+	{
+		if (mg_barPosition >= mg_targetMin && mg_barPosition <= mg_targetMax) {
+			if (se_success != -1) PlaySoundMem(se_success, DX_PLAYTYPE_BACK);
+			if (mg_targetItem) {
+				mg_targetItem->SetCollected(true);
+			}
+			mg_lastResultSuccess = true;
+		}
+		else {
+			if (se_fail != -1) PlaySoundMem(se_fail, DX_PLAYTYPE_BACK);
+			remainingTime -= 10.0f;
+			mg_lastResultSuccess = false;
+		}
+		mg_resultTimer = 1.0f;
+	}
+}
+
+void InGameScene::DrawMiniGame() const
+{
+	int cx = (int)SCREEN_WIDTH / 2;
+	int cy = (int)SCREEN_HEIGHT / 2;
+	int w = 400;
+	int h = 60;
+
+	DrawBox(cx - w / 2 - 5, cy - h / 2 - 5, cx + w / 2 + 5, cy + h / 2 + 5, GetColor(255, 255, 255), FALSE);
+	DrawBox(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2, GetColor(30, 30, 30), TRUE);
+
+	if (mg_resultTimer > 0.0f) {
+		if (mg_lastResultSuccess) {
+			DrawFormatString(cx - 60, cy - 10, GetColor(0, 255, 0), "GET EVIDENCE!");
+		}
+		else {
+			DrawFormatString(cx - 40, cy - 10, GetColor(255, 0, 0), "FAILED...");
+			DrawFormatString(cx - 50, cy + 20, GetColor(255, 100, 100), "-10 Seconds");
+		}
+		return;
+	}
+
+	if (mg_targetItem) {
+		DrawFormatString(cx - 100, cy - 60, GetColor(255, 255, 0), "TARGET: %s", mg_targetItem->GetName().c_str());
+	}
+
+	int z1 = cx - w / 2 + (int)(w * (mg_targetMin / 100.0f));
+	int z2 = cx - w / 2 + (int)(w * (mg_targetMax / 100.0f));
+	DrawBox(z1, cy - h / 2, z2, cy + h / 2, GetColor(0, 255, 0), TRUE);
+
+	int bx = cx - w / 2 + (int)(w * (mg_barPosition / 100.0f));
+	DrawBox(bx - 3, cy - h / 2 - 5, bx + 3, cy + h / 2 + 5, GetColor(255, 50, 50), TRUE);
+
+	DrawFormatString(cx - 80, cy + 40, GetColor(255, 255, 255), "Zキーでタイミングよく止めろ！");
+}
+
+void InGameScene::DrawTimer() const
+{
+	int min = (int)remainingTime / 60;
+	int sec = (int)remainingTime % 60;
+	int msec = (int)((remainingTime - (int)remainingTime) * 100);
+	unsigned int color = GetColor(255, 255, 255);
+	if (remainingTime < 10.0f) color = GetColor(255, 0, 0);
+	DrawFormatString(20, 20, color, "TIME: %02d:%02d.%02d", min, sec, msec);
+}
+
+void InGameScene::DrawPhaseInfo() const
+{
+	DrawFormatString(20, 50, GetColor(200, 200, 200), "証拠発見数: %d / %d",
+		itemManager.GetCollectedCount(), itemManager.GetTotalCount());
 }
 
 void InGameScene::DrawResult() const
 {
-    int x = 400;
-    int y = 300;
-    int boxWidth = 500;
-    int boxHeight = 200;
-    
-    DrawBox(x - 20, y - 40, x + boxWidth, y + boxHeight,
-        GetColor(0, 0, 0), TRUE);
-    DrawBox(x - 20, y - 40, x + boxWidth, y + boxHeight,
-        GetColor(255, 255, 255), FALSE);
-    
-    unsigned int titleColor = isCorrect ? GetColor(0, 255, 0) : GetColor(255, 0, 0);
-    std::string title = isCorrect ? "正解!" : "不正解";
-    
-    DrawFormatString(x + 150, y, titleColor, "%s", title.c_str());
-    
-    if (isCorrect) {
-        DrawFormatString(x + 50, y + 60, GetColor(255, 255, 255), "おめでとうございます!");
-    }
-    else {
-        DrawFormatString(x + 50, y + 60, GetColor(255, 255, 255), "推理が間違っていました");
-    }
-    
-    DrawFormatString(x + 100, y + 120, GetColor(200, 200, 200), "タイトルへ戻ります");
-}
-
-bool InGameScene::CheckAnswer(const ReasoningOption& selected)
-{
-    // 正解の設定：ReasoningManager::Initialize()で登録した「山田」「過去の因縁」
-    std::string correctSuspect = "山田";
-    std::string correctMotive = "過去の因縁";
-    
-    // 安全な文字列比較（空文字列チェック付き）
-    if (selected.suspect.empty() || selected.motive.empty()) {
-        return false;
-    }
-    
-    return (selected.suspect == correctSuspect && selected.motive == correctMotive);
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 220);
+	DrawBox(300, 200, (int)SCREEN_WIDTH - 300, (int)SCREEN_HEIGHT - 200, GetColor(0, 0, 0), TRUE);
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+	if (isCorrect) {
+		DrawFormatString(550, 300, GetColor(0, 255, 0), "推理 正解！！");
+		DrawFormatString(500, 350, GetColor(255, 255, 255), "見事、1分で事件を解決した！");
+	}
+	else {
+		DrawFormatString(550, 300, GetColor(255, 0, 0), "推理 失敗...");
+		DrawFormatString(500, 350, GetColor(255, 255, 255), "真実は闇の中へ...");
+	}
 }

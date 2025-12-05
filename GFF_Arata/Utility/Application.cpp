@@ -1,4 +1,4 @@
-#include "Application.h"
+﻿#include "Application.h"
 #include "DxLib.h"
 #include "InputManager.h"
 #include "../Scene/SceneManager.h"
